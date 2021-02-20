@@ -1,0 +1,6 @@
+framework module Pods_ForecastOrcas_ForecastOrcasUITests {
+  umbrella header "Pods-ForecastOrcas-ForecastOrcasUITests-umbrella.h"
+
+  export *
+  module * { export * }
+}
