@@ -10,9 +10,9 @@ import Moya
 
 // MARK: - Provider Specifications
 enum ForecastOrcasEndpointSpecifications {
+    
     case openWeatherMap(cityName: String, resultType: String, unitsType: String, numberOfDays: Int)
     case openWeatherMapByName(cityName: String)
-
 }
 
 // MARK: - Provider release url

@@ -13,6 +13,7 @@ class HomePresenterTest: XCTestCase {
     func testVoidFunction() {
 
         let eventSection = ForecastOrcas(360630)
+        let weatherModel = WeatherModel()
         let weatherError = ForecastError.cityName
         let viewController = HomeViewControllerTest()
         let presenter = HomePresenter()
@@ -20,12 +21,13 @@ class HomePresenterTest: XCTestCase {
         // configure protocols
         presenter.output = viewController
         presenter.present(section: eventSection)
-        presenter.present(errorStories: weatherError, cityName: "")
+        presenter.present(error: weatherError)
+        presenter.present(error: weatherError, cachedSection: weatherModel)
 
         //test equalization
         XCTAssertEqual(viewController.presentSections, true)
         XCTAssertEqual(viewController.presentError, true)
-        //XCTAssertEqual(viewController.presentErrorWithData, true)
+        XCTAssertEqual(viewController.presentErrorWithData, true)
     }
 }
 

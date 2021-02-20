@@ -13,12 +13,14 @@ import UIKit
 
 protocol HomePresenterInput: class {
     func present(section: ForecastOrcas)
-    func present(error: Error, cityName: String)
+    func present(error: Error, cachedSection: WeatherModel)
+    func present(error: Error)
 }
 
 protocol HomePresenterOutput: class {
     func display(section: WeatherModel)
-    func display(error: Error, cachedSection: WeatherModel?)
+    func display(error: Error, cachedSection: WeatherModel)
+    func display(error: Error)
 }
 
 class HomePresenter: HomePresenterInput {
@@ -39,32 +41,14 @@ class HomePresenter: HomePresenterInput {
         }
         let weather = WeatherModel(sections: weatherSection)
 
-        // check if weather was cached
-        // weather cached
-        let weatherModelType = ConstantStore.sharedInstance.getWeatherModelType(weather: weather)
-        switch weatherModelType {
-        case .new:
-            ConstantStore.sharedInstance.saveNewWeather(weather: weather, weatherType: .new)
-        case .cached:
-            break // in future replace old data by new data
-        }
-
         output?.display(section: weather)
     }
     
-    func present(error: Error, cityName: String) {
-        guard let weather = ConstantStore.sharedInstance.getWeatherMap(),
-              !weather.isEmpty else {
-            output?.display(error: error, cachedSection: nil)
-            return
-        }
+    func present(error: Error, cachedSection: WeatherModel) {
+        output?.display(error: error, cachedSection: cachedSection)
+    }
 
-        weather.forEach { weatherIs in
-            if weatherIs.sections.first?.cityName == cityName {
-                output?.display(error: error, cachedSection: weatherIs)
-            } else {
-                output?.display(error: error, cachedSection: nil)
-            }
-        }
+    func present(error: Error) {
+        output?.display(error: error)
     }
 }

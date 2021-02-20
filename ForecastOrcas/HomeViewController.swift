@@ -11,7 +11,8 @@ import RxSwift
 
 protocol HomeViewControllerInput: class {
     func display(section: WeatherModel)
-    func display(error: Error, cachedSection: WeatherModel?)
+    func display(error: Error, cachedSection: WeatherModel)
+    func display(error: Error)
 }
 
 protocol HomeViewControllerOutput: class {
@@ -110,22 +111,27 @@ extension HomeViewController: HomeViewControllerInput {
         forecastOrcasTable.reloadData()
     }
 
-    func display(error: Error, cachedSection: WeatherModel?) {
+    func display(error: Error, cachedSection: WeatherModel) {
         PKHUDIndicator.hideProgressView()
         PopUpAlert.showErrorToastWith(message: error.localizedDescription, error)
 
         loadingForecastOrcas = false
+        warningLabel.isHidden = false
 
-        if let cachedSection = cachedSection {
-            warningLabel.isHidden = false
-            self.showWarningCustomToast(message: warningLabel.text)
-            weatherModelSections = cachedSection
-            forecastOrcasTable.reloadData()
-        } else {
-            warningLabel.isHidden = true
-            errorMessageIs = error.localizedDescription
-            router.navigateBySegue(to: .errorPopUp)
-        }
+        self.showWarningCustomToast(message: warningLabel.text)
+        weatherModelSections = cachedSection
+        forecastOrcasTable.reloadData()
+    }
+
+    func display(error: Error) {
+        PKHUDIndicator.hideProgressView()
+        PopUpAlert.showErrorToastWith(message: error.localizedDescription, error)
+
+        loadingForecastOrcas = false
+        warningLabel.isHidden = true
+        
+        errorMessageIs = error.localizedDescription
+        router.navigateBySegue(to: .errorPopUp)
     }
 }
 

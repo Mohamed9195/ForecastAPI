@@ -46,14 +46,14 @@ class ConstantStore {
         }
     }
 
-    func getWeatherModelType(weather: WeatherModel?) -> WeatherModelType {
+    func getWeatherModelType(weather: ForecastOrcas?) -> WeatherModelType {
         // just for test
         guard weather != nil,
-              let lastWeatherCached = ConstantStore.sharedInstance.getWeatherMap(),
-              !lastWeatherCached.isEmpty else { return .new }
+              let weatherCached = ConstantStore.sharedInstance.getWeatherMap(),
+              !weatherCached.isEmpty else { return .new }
 
-        let cityIsFounded = lastWeatherCached.contains { weatherModel -> Bool in
-            if weatherModel.sections.first?.cityName == weather?.sections.first?.cityName {
+        let cityIsFounded = weatherCached.contains { weatherModel -> Bool in
+            if weatherModel.sections.first?.cityName == weather?.city?.name {
                 return true
             } else {
                 return false
@@ -66,7 +66,8 @@ class ConstantStore {
         }
     }
 
-    func saveNewWeather(weather: WeatherModel, weatherType: WeatherModelType) {
+    func saveNewWeather(forecast: ForecastOrcas, weatherType: WeatherModelType) {
+        let weather = castingForecastToWeatherModel(forecastIs: forecast)
         if weatherType == .new {
             if var lastWeatherCached =  ConstantStore.sharedInstance.getWeatherMap(),
                lastWeatherCached.count > 0 {
@@ -83,5 +84,20 @@ class ConstantStore {
                 ConstantStore.sharedInstance.AllWeatherMap = weatherData
             }
         }
+    }
+
+    func castingForecastToWeatherModel(forecastIs: ForecastOrcas) -> WeatherModel {
+        var weatherSection: [WeatherModel.Sections] = []
+        forecastIs.list.forEach { forecastOrcas in
+            // create custom model from api model to use it in app
+            weatherSection.append(WeatherModel.Sections(cityName: forecastIs.city?.name,
+                                                 HeaderTitle: forecastOrcas.dt_txt,
+                                                 windSpeed: String(forecastOrcas.wind?.speed ?? 0.0),
+                                                 windDeg: String(forecastOrcas.wind?.deg ?? 0.0),
+                                                 temp: String(forecastOrcas.main?.temp ?? 0.0),
+                                                 pressure: String(forecastOrcas.main?.pressure ?? 0),
+                                                 description: forecastOrcas.weather?.first?.description))
+        }
+        return WeatherModel(sections: weatherSection)
     }
 }

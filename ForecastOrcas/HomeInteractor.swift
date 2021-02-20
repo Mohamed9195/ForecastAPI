@@ -18,7 +18,8 @@ protocol HomeInteractorInput: class {
 
 protocol HomeInteractorOutput: class {
     func present(section: ForecastOrcas)
-    func present(error: Error, cityName: String)
+    func present(error: Error, cachedSection: WeatherModel)
+    func present(error: Error)
 }
 
 class HomeInteractor: HomeInteractorInput {
@@ -26,8 +27,10 @@ class HomeInteractor: HomeInteractorInput {
     var output: HomeInteractorOutput?
     let worker = HomeWorker()
     private let disposed = DisposeBag()
+    private var cityName: String = ""
 
     func loadForecastOrcas(cityName: String, resultType: String, unitsType: String, numberOfDays: Int) {
+        self.cityName = cityName
         ForecastOrcasEndPoints.shared
             .provider.rx
             .request(.openWeatherMapByName(cityName: cityName))
@@ -37,11 +40,41 @@ class HomeInteractor: HomeInteractorInput {
             .map(ForecastOrcas.self)
             .observeOn(MainScheduler.instance)
             .subscribe(onSuccess: { response in
-                self.output?.present(section: response)
+                self.handlingLoadForecastOrcasSuccess(forecastOrcas: response)
 
             }) { error in
-                self.output?.present(error: error, cityName: cityName)
+                self.handlingLoadForecastOrcasError(error)
 
             }.disposed(by: disposed)
+    }
+
+    private func handlingLoadForecastOrcasSuccess(forecastOrcas: ForecastOrcas) {
+        output?.present(section: forecastOrcas)
+
+        // check if weather was cached
+        // weather cached
+        let weatherModelType = ConstantStore.sharedInstance.getWeatherModelType(weather: forecastOrcas)
+        switch weatherModelType {
+        case .new:
+            ConstantStore.sharedInstance.saveNewWeather(forecast: forecastOrcas, weatherType: .new)
+        case .cached:
+            break // in future replace old data by new data
+        }
+    }
+
+    private func handlingLoadForecastOrcasError(_ error: Error) {
+        guard let weather = ConstantStore.sharedInstance.getWeatherMap(),
+              !weather.isEmpty else {
+            self.output?.present(error: error)
+            return
+        }
+
+        weather.forEach { weatherIs in
+            if weatherIs.sections.first?.cityName == cityName {
+                self.output?.present(error: error, cachedSection: weatherIs)
+            } else {
+                self.output?.present(error: error)
+            }
+        }
     }
 }

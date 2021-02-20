@@ -18,17 +18,20 @@ import XCTest
         presentSections = true
     }
 
-    func display(errorStories: Error, cachedSection: WeatherModel?) {
-        let cachedWether: WeatherModel? = nil
-        //let cachedWether: WeatherModel? = WeatherModel()
-        cachedWether == nil ? (presentError = true) : (presentErrorWithData = true)
+    func display(error: Error, cachedSection: WeatherModel) {
+        presentErrorWithData = true
+    }
+
+    func display(error: Error) {
+        presentError = true
     }
 }
 
 extension HomeViewControllerTest: HomePresenterOutput {
-    func present(section: ForecastOrcas) {
-    }
 
-    func present(errorStories: Error, cityName: String) {
-    }
+    func present(section: WeatherModel) { }
+    
+    func present(error: Error, cachedSection: WeatherModel) { }
+
+    func present(error: Error) { }
 }
